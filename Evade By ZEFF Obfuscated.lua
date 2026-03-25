@@ -1,7 +1,7 @@
 local ScreenGui = Instance.new("ScreenGui")
 -- Твои ссылки
 local PASS_URL = "https://raw.githubusercontent.com/ZEFFOFICCIAL/Evade-by-ZEFF-St.-Patrick-day-/refs/heads/main/Pass"
-local SCRIPT_URL = ""
+local SCRIPT_URL = "https://raw.githubusercontent.com/ZEFFOFICCIAL/Evade-by-ZEFF-St.-Patrick-day-/refs/heads/main/Evade%20By%20ZEFF%20Obfuscated.lua"
 
 -- Функция получения чистого пароля с сервера
 local function GetRemotePass()
