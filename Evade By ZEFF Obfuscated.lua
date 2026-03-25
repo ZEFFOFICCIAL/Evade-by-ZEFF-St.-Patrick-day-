@@ -1,6 +1,6 @@
 local ScreenGui = Instance.new("ScreenGui")
 -- Твоє RAW посилання на пароль (GitHub)
-local PASS_URL = ""
+local PASS_URL = "https://raw.githubusercontent.com/ZEFFOFICCIAL/Evade-by-ZEFF-St.-Patrick-day-/refs/heads/main/Pass"
 
 local Frame = Instance.new("Frame")
 local SpeedInput = Instance.new("TextBox")
