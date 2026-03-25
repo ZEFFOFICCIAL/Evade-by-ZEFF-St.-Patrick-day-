@@ -1,14 +1,13 @@
 local ScreenGui = Instance.new("ScreenGui")
--- Твоє RAW посилання з Pastebin (вже вставлено!)
-local PASS_URL = "https://pastebin.com/raw/meEMSFNV" 
+-- Твоє робоче RAW посилання з Pastebin
+local PASS_URL = "https://pastebin.com" 
 
 local function GetRemotePass()
     local success, res = pcall(function()
-        -- Додаємо ?t= щоб обійти кеш і пароль оновлювався миттєво
         return game:HttpGet(PASS_URL .. "?t=" .. tostring(math.random(1, 8888)))
     end)
     if success and res then 
-        return res:gsub("%s+", ""):lower() -- чистимо пробіли та робимо маленькими
+        return res:gsub("%s+", ""):lower()
     end
     return nil
 end
@@ -60,7 +59,6 @@ local def_br = Lighting.Brightness
 LoginButton.MouseButton1Click:Connect(function()
     local CorrectPass = GetRemotePass()
     local userEntry = PassInput.Text:gsub("%s+", ""):lower()
-    
     if CorrectPass and userEntry == CorrectPass then
         IsUnlocked = true; PassInput.Visible, LoginButton.Visible = false, false
         for _, v in ipairs(fields) do v[1].Visible, v[2].Visible = true, true end
@@ -103,7 +101,14 @@ UIS.InputBegan:Connect(function(i, g)
     if i.KeyCode == Enum.KeyCode.N then noclip = not noclip; if not noclip then local c = game.Players.LocalPlayer.Character; if c then for _,p in pairs(c:GetDescendants()) do if p:IsA("BasePart") then p.CanCollide = true end end end end end
     if i.KeyCode == Enum.KeyCode.Y then flying = not flying end
     if i.KeyCode == Enum.KeyCode.B then bright_enabled = not bright_enabled; Lighting.Brightness = bright_enabled and (tonumber(BrightInput.Text) or 3) or def_br; Lighting.OutdoorAmbient = bright_enabled and Color3.new(1,1,1) or Color3.fromRGB(127,127,127) end
-    if i.KeyCode == Enum.KeyCode.K then task.spawn(function() VIM:SendKeyEvent(true, "Two", false, game); task.wait(0.01); VIM:SendKeyEvent(false, "Two", false, game); task.wait(0.05); VIM:SendMouseButtonEvent(0, 0, 0, true, game, 0); task.wait(0.01); VIM:SendMouseButtonEvent(0, 0, 0, false, game, 0); task.wait(0.01); VIM:SendKeyEvent(true, "One", false, game); task.wait(0.01); VIM:SendKeyEvent(false, "One", false, game) end) end
+    if i.KeyCode == Enum.KeyCode.K then
+        task.spawn(function()
+            VIM:SendKeyEvent(true, "Two", false, game); task.wait(0.01); VIM:SendKeyEvent(false, "Two", false, game)
+            task.wait(0.05); VIM:SendMouseButtonEvent(0, 0, 0, true, game, 0); task.wait(0.01); VIM:SendMouseButtonEvent(0, 0, 0, false, game, 0)
+            task.wait(0.01); VIM:SendKeyEvent(true, "One", false, game); task.wait(0.01); VIM:SendKeyEvent(false, "One", false, game)
+        end)
+    end
 end)
+
 UIS.InputEnded:Connect(function(i) if i.KeyCode == Enum.KeyCode.Space then holdingSpace = false end end)
 SetButton.MouseButton1Click:Connect(function() Frame.Visible = false end)
