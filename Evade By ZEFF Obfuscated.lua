@@ -1,56 +1,41 @@
 local ScreenGui = Instance.new("ScreenGui")
--- Це "переклад" твого тега <script> у формат, який розуміє Roblox:
+-- Оновлене пряме посилання на твій Gist Pas
 local PASS_URL = "https://gist.githubusercontent.com"
 
-local Frame = Instance.new("Frame")
-local SpeedInput = Instance.new("TextBox")
-local FlyInput = Instance.new("TextBox")
-local BrightInput = Instance.new("TextBox")
-local SetButton = Instance.new("TextButton")
-local InfoLabel = Instance.new("TextLabel")
-local PassInput = Instance.new("TextBox")
-local LoginButton = Instance.new("TextButton")
-local CreditLabel = Instance.new("TextLabel")
-local VersionLabel = Instance.new("TextLabel")
+local function GetRemotePass()
+    local success, res = pcall(function()
+        -- Додаємо ?t= щоб Roblox не запам'ятовував старий пароль (анти-кеш)
+        return game:HttpGet(PASS_URL .. "?t=" .. tostring(math.random(1, 999999)))
+    end)
+    if success and res then 
+        -- Повне очищення: прибираємо пробіли, лапки, переноси рядків і робимо маленькими буквами
+        return res:gsub("%s+", ""):gsub('"', ""):lower() 
+    end
+    return nil
+end
 
+-- Решта твого коду (UI та функції)
+local Frame = Instance.new("Frame")
+local SpeedInput, FlyInput, BrightInput = Instance.new("TextBox"), Instance.new("TextBox"), Instance.new("TextBox")
+local SetButton, InfoLabel, PassInput, LoginButton = Instance.new("TextButton"), Instance.new("TextLabel"), Instance.new("TextBox"), Instance.new("TextButton")
+local CreditLabel, VersionLabel = Instance.new("TextLabel"), Instance.new("TextLabel")
 local SpeedText, FlyText, BrightText = Instance.new("TextLabel"), Instance.new("TextLabel"), Instance.new("TextLabel")
 
 local IsUnlocked = false
 local MainFont, LogoFont = Enum.Font.GothamBold, Enum.Font.GothamBlack 
 
--- Функція, яка заходить у твій Gist і бере звідти пароль
-local function GetRemotePass()
-    local success, res = pcall(function()
-        return game:HttpGet(PASS_URL .. "?t=" .. tostring(math.random(1, 999999)))
-    end)
-    if success and res then 
-        return res:gsub("%s+", ""):lower() -- чистимо від пробілів
-    end
-    return nil
-end
-
 pcall(function() ScreenGui.Parent = game:GetService("CoreGui") end)
 if not ScreenGui.Parent then ScreenGui.Parent = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui") end
 
--- ДИЗАЙН (Твій стиль)
-Frame.Parent = ScreenGui
-Frame.Size = UDim2.new(0, 200, 0, 100)
-Frame.Position = UDim2.new(0.5, -100, 0.2, 0)
-Frame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
-Frame.Active, Frame.Draggable = true, true
-Instance.new("UICorner", Frame).CornerRadius = UDim.new(0, 12)
-local stroke = Instance.new("UIStroke", Frame)
-stroke.Color = Color3.new(1, 1, 1)
-stroke.Thickness = 2.5
-
+Frame.Parent = ScreenGui; Frame.Size = UDim2.new(0, 200, 0, 100); Frame.Position = UDim2.new(0.5, -100, 0.2, 0); Frame.BackgroundColor3 = Color3.fromRGB(15, 15, 15); Frame.Active, Frame.Draggable = true, true
+Instance.new("UICorner", Frame).CornerRadius = UDim.new(0, 12); local stroke = Instance.new("UIStroke", Frame); stroke.Color = Color3.new(1, 1, 1); stroke.Thickness = 2.5
 CreditLabel.Parent = Frame; CreditLabel.Size = UDim2.new(0, 200, 0, 30); CreditLabel.Position = UDim2.new(0, 0, 0, -35); CreditLabel.BackgroundTransparency = 1; CreditLabel.Text = "By ZEFF"; CreditLabel.Font = LogoFont; CreditLabel.TextSize = 28; CreditLabel.TextColor3 = Color3.new(1,1,1)
-VersionLabel.Parent = Frame; VersionLabel.Size = UDim2.new(0, 40, 0, 20); VersionLabel.Position = UDim2.new(1, -45, 1, -22); VersionLabel.BackgroundTransparency = 1; VersionLabel.Text = "2.1"; VersionLabel.Font = MainFont; VersionLabel.TextSize = 14; VersionLabel.TextColor3 = Color3.new(1,1,1)
+VersionLabel.Parent = Frame; VersionLabel.Size = UDim2.new(0, 40, 0, 20); VersionLabel.Position = UDim2.new(1, -45, 1, -22); VersionLabel.BackgroundTransparency = 1; VersionLabel.Text = "2.2"; VersionLabel.Font = MainFont; VersionLabel.TextSize = 14; VersionLabel.TextColor3 = Color3.new(1,1,1)
 
 task.spawn(function() while true do for i = 0, 1, 0.01 do local color = Color3.fromHSV(i, 0.8, 1); stroke.Color = color; CreditLabel.TextColor3 = color; VersionLabel.TextColor3 = color; task.wait(0.02) end end end)
 
 local function ApplyStyle(el, isLabel)
-    Instance.new("UICorner", el).CornerRadius = UDim.new(0, 6)
-    el.BackgroundColor3 = Color3.fromRGB(30, 30, 30); el.TextColor3 = Color3.new(1, 1, 1); el.Font = MainFont
+    Instance.new("UICorner", el).CornerRadius = UDim.new(0, 6); el.BackgroundColor3 = Color3.fromRGB(30, 30, 30); el.TextColor3 = Color3.new(1, 1, 1); el.Font = MainFont
     if isLabel then el.BackgroundTransparency = 1; el.TextSize = 10; el.TextColor3 = Color3.fromRGB(200, 200, 200) else el.TextSize = 14 end
 end
 
@@ -68,7 +53,6 @@ SpeedInput.Text, FlyInput.Text, BrightInput.Text = "1.5", "2.0", "100"
 SetButton.Parent, SetButton.Size, SetButton.Position, SetButton.Text = Frame, UDim2.new(0, 170, 0, 30), UDim2.new(0, 15, 0, 175), "CLOSE (X)"; ApplyStyle(SetButton); SetButton.Visible = false
 InfoLabel.Parent, InfoLabel.Size, InfoLabel.Position, InfoLabel.Text = Frame, UDim2.new(0, 170, 0, 45), UDim2.new(0, 15, 0, 210), "Z-Speed | N-Noclip | Y-Fly\nK-Cola | Space-Bhop | B-Bright"; InfoLabel.TextColor3, InfoLabel.Font, InfoLabel.BackgroundTransparency, InfoLabel.Visible = Color3.fromRGB(180, 180, 180), MainFont, 1, false
 
--- ПАРАМЕТРИ ЧИТУ
 local speeding, holdingSpace, noclip, flying, bright_enabled = false, false, false, false, false
 local bv, flyGyro, flyVel = nil, nil, nil
 local UIS, VIM, Lighting, RunService = game:GetService("UserInputService"), game:GetService("VirtualInputManager"), game:GetService("Lighting"), game:GetService("RunService")
@@ -92,7 +76,7 @@ RunService.Heartbeat:Connect(function()
     local char = game.Players.LocalPlayer.Character
     local root = char and char:FindFirstChild("HumanoidRootPart")
     local hum = char and char:FindFirstChild("Humanoid")
-    if char and root and hum and hum.Health > 1 then
+    if root and hum and hum.Health > 1 then
         if holdingSpace and hum.FloorMaterial ~= Enum.Material.Air then hum:ChangeState(Enum.HumanoidStateType.Jumping); root.Velocity = Vector3.new(root.Velocity.X, 16, root.Velocity.Z) end
         if noclip then for _, p in pairs(char:GetDescendants()) do if p:IsA("BasePart") then p.CanCollide = false end end end
         if flying then
