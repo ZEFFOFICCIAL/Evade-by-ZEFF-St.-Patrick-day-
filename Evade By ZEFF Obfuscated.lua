@@ -1,5 +1,5 @@
 local ScreenGui = Instance.new("ScreenGui")
-local PASS_URL = "pastebin.com/raw/LNJHtzG" 
+local PASS_URL = "https://pastebin.com/raw/LNJHtzGQ" 
 
 local function GetRemotePass()
     local success, res = pcall(function()
