@@ -1,6 +1,5 @@
 local ScreenGui = Instance.new("ScreenGui")
--- Твоє робоче RAW посилання з Pastebin
-local PASS_URL = "https://pastebin.com/raw/LNJHtzGQ" 
+local PASS_URL = "pastebin.com/raw/LNJHtzG" 
 
 local function GetRemotePass()
     local success, res = pcall(function()
@@ -27,7 +26,7 @@ if not ScreenGui.Parent then ScreenGui.Parent = game:GetService("Players").Local
 Frame.Parent = ScreenGui; Frame.Size = UDim2.new(0, 200, 0, 100); Frame.Position = UDim2.new(0.5, -100, 0.2, 0); Frame.BackgroundColor3 = Color3.fromRGB(15, 15, 15); Frame.Active, Frame.Draggable = true, true
 Instance.new("UICorner", Frame).CornerRadius = UDim.new(0, 12); local stroke = Instance.new("UIStroke", Frame); stroke.Color = Color3.new(1, 1, 1); stroke.Thickness = 2.5
 CreditLabel.Parent = Frame; CreditLabel.Size = UDim2.new(0, 200, 0, 30); CreditLabel.Position = UDim2.new(0, 0, 0, -35); CreditLabel.BackgroundTransparency = 1; CreditLabel.Text = "By ZEFF"; CreditLabel.Font = LogoFont; CreditLabel.TextSize = 28; CreditLabel.TextColor3 = Color3.new(1,1,1)
-VersionLabel.Parent = Frame; VersionLabel.Size = UDim2.new(0, 40, 0, 20); VersionLabel.Position = UDim2.new(1, -45, 1, -22); VersionLabel.BackgroundTransparency = 1; VersionLabel.Text = "4.0"; VersionLabel.Font = MainFont; VersionLabel.TextSize = 14; VersionLabel.TextColor3 = Color3.new(1,1,1)
+VersionLabel.Parent = Frame; VersionLabel.Size = UDim2.new(0, 40, 0, 20); VersionLabel.Position = UDim2.new(1, -45, 1, -22); VersionLabel.BackgroundTransparency = 1; VersionLabel.Text = "5.0"; VersionLabel.Font = MainFont; VersionLabel.TextSize = 14; VersionLabel.TextColor3 = Color3.new(1,1,1)
 
 task.spawn(function() while true do for i = 0, 1, 0.01 do local color = Color3.fromHSV(i, 0.8, 1); stroke.Color = color; CreditLabel.TextColor3 = color; VersionLabel.TextColor3 = color; task.wait(0.02) end end end)
 
@@ -56,6 +55,15 @@ local bv, flyGyro, flyVel = nil, nil, nil
 local UIS, VIM, Lighting, RunService = game:GetService("UserInputService"), game:GetService("VirtualInputManager"), game:GetService("Lighting"), game:GetService("RunService")
 local def_br = Lighting.Brightness
 
+local function resetCollision()
+    local char = game.Players.LocalPlayer.Character
+    if char then
+        for _, part in pairs(char:GetDescendants()) do
+            if part:IsA("BasePart") then part.CanCollide = true end
+        end
+    end
+end
+
 LoginButton.MouseButton1Click:Connect(function()
     local CorrectPass = GetRemotePass()
     local userEntry = PassInput.Text:gsub("%s+", ""):lower()
@@ -75,16 +83,28 @@ RunService.Heartbeat:Connect(function()
     local hum = char and char:FindFirstChild("Humanoid")
     if char and root and hum and hum.Health > 1 then
         if holdingSpace and hum.FloorMaterial ~= Enum.Material.Air then hum:ChangeState(Enum.HumanoidStateType.Jumping); root.Velocity = Vector3.new(root.Velocity.X, 16, root.Velocity.Z) end
-        if noclip then for _, p in pairs(char:GetDescendants()) do if p:IsA("BasePart") then p.CanCollide = false end end end
+        
+        -- NOCLIP / FLY COLLISION
+        if noclip or flying then 
+            for _, p in pairs(char:GetDescendants()) do 
+                if p:IsA("BasePart") then p.CanCollide = false end 
+            end 
+        end
+
         if flying then
             hum.PlatformStand = true
-            if not flyGyro then flyGyro = Instance.new("BodyGyro", root); flyGyro.MaxTorque = Vector3.new(9e9, 9e9, 9e9); flyVel = Instance.new("BodyVelocity", root); flyVel.MaxForce = Vector3.new(9e9, 9e9, 9e9) end
+            if not flyGyro then 
+                flyGyro = Instance.new("BodyGyro", root); flyGyro.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
+                flyVel = Instance.new("BodyVelocity", root); flyVel.MaxForce = Vector3.new(9e9, 9e9, 9e9)
+            end
             local dir = Vector3.new(0,0,0); local camCF = workspace.CurrentCamera.CFrame
             if UIS:IsKeyDown(Enum.KeyCode.W) then dir = dir + camCF.LookVector end
             if UIS:IsKeyDown(Enum.KeyCode.S) then dir = dir - camCF.LookVector end
+            if UIS:IsKeyDown(Enum.KeyCode.D) then dir = dir + camCF.RightVector end
+            if UIS:IsKeyDown(Enum.KeyCode.A) then dir = dir - camCF.RightVector end
             flyVel.Velocity = dir.Magnitude > 0 and dir.Unit * ((tonumber(FlyInput.Text) or 2) * 70) or Vector3.new(0,0,0); root.AssemblyLinearVelocity = Vector3.new(0,0,0)
         else
-            if flyGyro then flyGyro:Destroy(); flyGyro = nil; flyVel:Destroy(); flyVel = nil; hum.PlatformStand = false end
+            if flyGyro then flyGyro:Destroy(); flyGyro = nil; flyVel:Destroy(); flyVel = nil; hum.PlatformStand = false; resetCollision() end
             if speeding and hum.MoveDirection.Magnitude > 0 then
                 if not bv or bv.Parent ~= root then if bv then bv:Destroy() end; bv = Instance.new("BodyVelocity", root); bv.MaxForce = Vector3.new(5e5, 0, 5e5) end
                 bv.Velocity = hum.MoveDirection * ((tonumber(SpeedInput.Text) or 1.5) * 65)
@@ -98,8 +118,8 @@ UIS.InputBegan:Connect(function(i, g)
     if not IsUnlocked or g then return end
     if i.KeyCode == Enum.KeyCode.Space then holdingSpace = true end
     if i.KeyCode == Enum.KeyCode.Z then speeding = not speeding end
-    if i.KeyCode == Enum.KeyCode.N then noclip = not noclip; if not noclip then local c = game.Players.LocalPlayer.Character; if c then for _,p in pairs(c:GetDescendants()) do if p:IsA("BasePart") then p.CanCollide = true end end end end end
-    if i.KeyCode == Enum.KeyCode.Y then flying = not flying end
+    if i.KeyCode == Enum.KeyCode.N then noclip = not noclip; if not noclip then resetCollision() end end
+    if i.KeyCode == Enum.KeyCode.Y then flying = not flying; if not flying then resetCollision() end end
     if i.KeyCode == Enum.KeyCode.B then bright_enabled = not bright_enabled; Lighting.Brightness = bright_enabled and (tonumber(BrightInput.Text) or 3) or def_br; Lighting.OutdoorAmbient = bright_enabled and Color3.new(1,1,1) or Color3.fromRGB(127,127,127) end
     if i.KeyCode == Enum.KeyCode.K then
         task.spawn(function()
@@ -109,6 +129,5 @@ UIS.InputBegan:Connect(function(i, g)
         end)
     end
 end)
-
 UIS.InputEnded:Connect(function(i) if i.KeyCode == Enum.KeyCode.Space then holdingSpace = false end end)
 SetButton.MouseButton1Click:Connect(function() Frame.Visible = false end)
