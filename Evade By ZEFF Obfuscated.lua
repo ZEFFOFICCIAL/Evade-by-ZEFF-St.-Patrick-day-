@@ -1,20 +1,22 @@
 local ScreenGui = Instance.new("ScreenGui")
--- Оновлене пряме посилання на твій Gist Pas
+-- Пряме посилання на останню версію твого Gist (воно завжди одне й те саме)
 local PASS_URL = "https://gist.githubusercontent.com"
 
 local function GetRemotePass()
     local success, res = pcall(function()
-        -- Додаємо ?t= щоб Roblox не запам'ятовував старий пароль (анти-кеш)
+        -- Додаємо випадковий хвіст, щоб обійти кеш Roblox
         return game:HttpGet(PASS_URL .. "?t=" .. tostring(math.random(1, 999999)))
     end)
     if success and res then 
-        -- Повне очищення: прибираємо пробіли, лапки, переноси рядків і робимо маленькими буквами
-        return res:gsub("%s+", ""):gsub('"', ""):lower() 
+        local clean = res:gsub("%s+", ""):lower()
+        print("[DEBUG] Отримано пароль із Gist: " .. clean) -- Подивись це в F9
+        return clean
     end
+    warn("[DEBUG] Помилка завантаження пароля!")
     return nil
 end
 
--- Решта твого коду (UI та функції)
+-- UI ТА ЛОГІКА
 local Frame = Instance.new("Frame")
 local SpeedInput, FlyInput, BrightInput = Instance.new("TextBox"), Instance.new("TextBox"), Instance.new("TextBox")
 local SetButton, InfoLabel, PassInput, LoginButton = Instance.new("TextButton"), Instance.new("TextLabel"), Instance.new("TextBox"), Instance.new("TextButton")
@@ -30,7 +32,7 @@ if not ScreenGui.Parent then ScreenGui.Parent = game:GetService("Players").Local
 Frame.Parent = ScreenGui; Frame.Size = UDim2.new(0, 200, 0, 100); Frame.Position = UDim2.new(0.5, -100, 0.2, 0); Frame.BackgroundColor3 = Color3.fromRGB(15, 15, 15); Frame.Active, Frame.Draggable = true, true
 Instance.new("UICorner", Frame).CornerRadius = UDim.new(0, 12); local stroke = Instance.new("UIStroke", Frame); stroke.Color = Color3.new(1, 1, 1); stroke.Thickness = 2.5
 CreditLabel.Parent = Frame; CreditLabel.Size = UDim2.new(0, 200, 0, 30); CreditLabel.Position = UDim2.new(0, 0, 0, -35); CreditLabel.BackgroundTransparency = 1; CreditLabel.Text = "By ZEFF"; CreditLabel.Font = LogoFont; CreditLabel.TextSize = 28; CreditLabel.TextColor3 = Color3.new(1,1,1)
-VersionLabel.Parent = Frame; VersionLabel.Size = UDim2.new(0, 40, 0, 20); VersionLabel.Position = UDim2.new(1, -45, 1, -22); VersionLabel.BackgroundTransparency = 1; VersionLabel.Text = "2.2"; VersionLabel.Font = MainFont; VersionLabel.TextSize = 14; VersionLabel.TextColor3 = Color3.new(1,1,1)
+VersionLabel.Parent = Frame; VersionLabel.Size = UDim2.new(0, 40, 0, 20); VersionLabel.Position = UDim2.new(1, -45, 1, -22); VersionLabel.BackgroundTransparency = 1; VersionLabel.Text = "3.0"; VersionLabel.Font = MainFont; VersionLabel.TextSize = 14; VersionLabel.TextColor3 = Color3.new(1,1,1)
 
 task.spawn(function() while true do for i = 0, 1, 0.01 do local color = Color3.fromHSV(i, 0.8, 1); stroke.Color = color; CreditLabel.TextColor3 = color; VersionLabel.TextColor3 = color; task.wait(0.02) end end end)
 
