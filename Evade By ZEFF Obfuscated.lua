@@ -1,6 +1,6 @@
 local ScreenGui = Instance.new("ScreenGui")
 -- Твоє робоче RAW посилання з Pastebin
-local PASS_URL = "https://pastebin.com" 
+local PASS_URL = "https://pastebin.com/raw/LNJHtzGQ" 
 
 local function GetRemotePass()
     local success, res = pcall(function()
