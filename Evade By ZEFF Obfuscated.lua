@@ -1,20 +1,6 @@
 local ScreenGui = Instance.new("ScreenGui")
--- Твои ссылки
-local PASS_URL = "https://raw.githubusercontent.com/ZEFFOFICCIAL/Evade-by-ZEFF-St.-Patrick-day-/refs/heads/main/Pass"
-local SCRIPT_URL = "https://raw.githubusercontent.com/ZEFFOFICCIAL/Evade-by-ZEFF-St.-Patrick-day-/refs/heads/main/Evade%20By%20ZEFF%20Obfuscated.lua"
-
--- Функция получения чистого пароля с сервера
-local function GetRemotePass()
-    local success, res = pcall(function()
-        -- Добавляем рандомный параметр, чтобы GitHub не выдавал старый пароль из кэша
-        return game:HttpGet(PASS_URL .. "?t=" .. tostring(math.random(1, 999999)))
-    end)
-    if success then 
-        -- Убираем пробелы и переносы строк
-        return res:match("^%s*(.-)%s*$") or ""
-    end
-    return "CONNECTION_ERROR"
-end
+-- Твоє RAW посилання на пароль (GitHub)
+local PASS_URL = ""
 
 local Frame = Instance.new("Frame")
 local SpeedInput = Instance.new("TextBox")
@@ -26,6 +12,7 @@ local PassInput = Instance.new("TextBox")
 local LoginButton = Instance.new("TextButton")
 local CreditLabel = Instance.new("TextLabel")
 local VersionLabel = Instance.new("TextLabel")
+
 local SpeedText = Instance.new("TextLabel")
 local FlyText = Instance.new("TextLabel")
 local BrightText = Instance.new("TextLabel")
@@ -34,9 +21,21 @@ local IsUnlocked = false
 local MainFont = Enum.Font.GothamBold 
 local LogoFont = Enum.Font.GothamBlack 
 
+-- Функція отримання пароля з анти-кешем
+local function GetRemotePass()
+    local success, res = pcall(function()
+        return game:HttpGet(PASS_URL .. "?t=" .. tostring(math.random(1, 999999)))
+    end)
+    if success then 
+        return res:match("^%s*(.-)%s*$") or ""
+    end
+    return "CONNECTION_ERROR"
+end
+
 pcall(function() ScreenGui.Parent = game:GetService("CoreGui") end)
 if not ScreenGui.Parent then ScreenGui.Parent = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui") end
 
+-- Дизайн інтерфейсу
 Frame.Parent = ScreenGui
 Frame.Size = UDim2.new(0, 200, 0, 100)
 Frame.Position = UDim2.new(0.5, -100, 0.2, 0)
@@ -56,16 +55,15 @@ CreditLabel.BackgroundTransparency = 1
 CreditLabel.Text = "By ZEFF"
 CreditLabel.Font = LogoFont
 CreditLabel.TextSize = 28 
-CreditLabel.TextColor3 = Color3.new(1,1,1)
+CreditLabel.TextStrokeTransparency = 0.3
 
 VersionLabel.Parent = Frame
 VersionLabel.Size = UDim2.new(0, 40, 0, 20)
 VersionLabel.Position = UDim2.new(1, -45, 1, -22)
 VersionLabel.BackgroundTransparency = 1
-VersionLabel.Text = "1.2"
+VersionLabel.Text = "1.6"
 VersionLabel.Font = MainFont
 VersionLabel.TextSize = 14
-VersionLabel.TextColor3 = Color3.new(1,1,1)
 VersionLabel.TextXAlignment = Enum.TextXAlignment.Right
 
 task.spawn(function()
@@ -142,7 +140,7 @@ InfoLabel.Parent = Frame
 InfoLabel.Size = UDim2.new(0, 170, 0, 45)
 InfoLabel.Position = UDim2.new(0, 15, 0, 210)
 InfoLabel.BackgroundTransparency = 1
-InfoLabel.Text = "Z-Speed | N-Noclip | Y-Fly\nK-Cola | Space-Bhop"
+InfoLabel.Text = "Z-Speed | N-Noclip | Y-Fly\nK-Cola | Space-Bhop | B-Bright"
 InfoLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
 InfoLabel.TextSize = 11
 InfoLabel.Font = MainFont
@@ -172,8 +170,6 @@ LoginButton.MouseButton1Click:Connect(function()
         for _, v in ipairs(inputFields) do v[1].Visible, v[2].Visible = true, true end
         SetButton.Visible, InfoLabel.Visible = true, true
         Frame.Size = UDim2.new(0, 200, 0, 270)
-        -- Запуск твоего основного чита
-        loadstring(game:HttpGet(SCRIPT_URL))()
     else
         PassInput.Text = ""
         PassInput.PlaceholderText = "WRONG PASS!"
@@ -185,14 +181,22 @@ RunService.Heartbeat:Connect(function()
     local char = game.Players.LocalPlayer.Character
     local root = char and char:FindFirstChild("HumanoidRootPart")
     local hum = char and char:FindFirstChild("Humanoid")
+    
     if char and root and hum and hum.Health > 1 then
+        -- BHOP
         if holdingSpace and hum.FloorMaterial ~= Enum.Material.Air then
             hum:ChangeState(Enum.HumanoidStateType.Jumping)
             root.Velocity = Vector3.new(root.Velocity.X, 16, root.Velocity.Z)
         end
-        if noclip and hum.MoveDirection.Magnitude > 0 then
-            root.CFrame = root.CFrame + (hum.MoveDirection * 0.4)
+
+        -- NOCLIP
+        if noclip then
+            for _, part in pairs(char:GetDescendants()) do
+                if part:IsA("BasePart") then part.CanCollide = false end
+            end
         end
+
+        -- FLY
         if flying then
             hum.PlatformStand = true
             if not flyGyro then
@@ -208,16 +212,19 @@ RunService.Heartbeat:Connect(function()
             flyVel.Velocity = dir.Magnitude > 0 and dir.Unit * ((tonumber(FlyInput.Text) or 2) * 70) or Vector3.new(0,0,0)
             root.AssemblyLinearVelocity = Vector3.new(0,0,0)
         else
-            if flyGyro then flyGyro:Destroy() flyGyro = nil end
-            if flyVel then flyVel:Destroy() flyVel = nil end
+            if flyGyro then flyGyro:Destroy(); flyGyro = nil end
+            if flyVel then flyVel:Destroy(); flyVel = nil end
             hum.PlatformStand = false
+            
+            -- SPEED
             if speeding and hum.MoveDirection.Magnitude > 0 then
                 if not bv or bv.Parent ~= root then
                     if bv then bv:Destroy() end
-                    bv = Instance.new("BodyVelocity", root); bv.MaxForce = Vector3.new(5e5, 0, 5e5)
+                    bv = Instance.new("BodyVelocity", root)
+                    bv.MaxForce = Vector3.new(5e5, 0, 5e5)
                 end
                 bv.Velocity = hum.MoveDirection * ((tonumber(SpeedInput.Text) or 1.5) * 65)
-            elseif bv then bv:Destroy() bv = nil end
+            elseif bv then bv:Destroy(); bv = nil end
         end
     end
 end)
@@ -226,13 +233,32 @@ UIS.InputBegan:Connect(function(i, g)
     if i.KeyCode == Enum.KeyCode.Space then holdingSpace = true end
     if i.KeyCode == Enum.KeyCode.X then Frame.Visible = not Frame.Visible end
     if not IsUnlocked or g then return end
+    
     if i.KeyCode == Enum.KeyCode.Z then speeding = not speeding end
     if i.KeyCode == Enum.KeyCode.N then noclip = not noclip if not noclip then resetCollision() end end
     if i.KeyCode == Enum.KeyCode.Y then flying = not flying if not flying then resetCollision() end end
+    
+    -- FULLBRIGHT
     if i.KeyCode == Enum.KeyCode.B then 
         bright_enabled = not bright_enabled
-        if bright_enabled then Lighting.Brightness, Lighting.ClockTime, Lighting.FogEnd = 3, 14, 1e5
-        else Lighting.Brightness, Lighting.ClockTime, Lighting.FogEnd = def_br, def_ct, 1000 end
+        if bright_enabled then 
+            Lighting.Brightness = tonumber(BrightInput.Text) or 3
+            Lighting.ClockTime = 14
+            Lighting.FogEnd = 1e5
+        else 
+            Lighting.Brightness = def_br
+            Lighting.ClockTime = def_ct
+            Lighting.FogEnd = 1000 
+        end
+    end
+
+    -- COLA (K)
+    if i.KeyCode == Enum.KeyCode.K then
+        task.spawn(function()
+            VIM:SendKeyEvent(true, "Two", false, game); task.wait(0.01); VIM:SendKeyEvent(false, "Two", false, game)
+            task.wait(0.05); VIM:SendMouseButtonEvent(0, 0, 0, true, game, 0); task.wait(0.01); VIM:SendMouseButtonEvent(0, 0, 0, false, game, 0)
+            task.wait(0.01); VIM:SendKeyEvent(true, "One", false, game); task.wait(0.01); VIM:SendKeyEvent(false, "One", false, game)
+        end)
     end
 end)
 
