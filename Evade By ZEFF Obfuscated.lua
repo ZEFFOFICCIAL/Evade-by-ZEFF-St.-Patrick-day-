@@ -1,5 +1,5 @@
 local ScreenGui = Instance.new("ScreenGui")
--- Твоє ПОВНЕ Raw-посилання на пароль (з Gist)
+-- Твоє ПОВНЕ Raw-посилання
 local PASS_URL = "https://gist.githubusercontent.com"
 
 local Frame = Instance.new("Frame")
@@ -18,14 +18,13 @@ local SpeedText, FlyText, BrightText = Instance.new("TextLabel"), Instance.new("
 local IsUnlocked = false
 local MainFont, LogoFont = Enum.Font.GothamBold, Enum.Font.GothamBlack 
 
--- Функція отримання пароля (з очищенням від невидимих символів)
+-- ФУНКЦІЯ ОТРИМАННЯ ПАРОЛЯ (З ПОВНИМ ОЧИЩЕННЯМ)
 local function GetRemotePass()
     local success, res = pcall(function()
-        -- Додаємо випадковий хвіст, щоб обійти кеш (пароль оновиться миттєво)
         return game:HttpGet(PASS_URL .. "?t=" .. tostring(math.random(1, 999999)))
     end)
     if success and res then 
-        return res:gsub("%s+", "") -- Видаляємо пробіли та переноси рядків
+        return res:gsub("%s+", ""):lower() -- видаляємо пробіли і робимо маленькими буквами
     end
     return nil
 end
@@ -33,7 +32,7 @@ end
 pcall(function() ScreenGui.Parent = game:GetService("CoreGui") end)
 if not ScreenGui.Parent then ScreenGui.Parent = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui") end
 
--- ДИЗАЙН (Твій оригінальний стиль)
+-- ДИЗАЙН
 Frame.Parent = ScreenGui
 Frame.Size = UDim2.new(0, 200, 0, 100)
 Frame.Position = UDim2.new(0.5, -100, 0.2, 0)
@@ -45,7 +44,7 @@ stroke.Color = Color3.new(1, 1, 1)
 stroke.Thickness = 2.5
 
 CreditLabel.Parent = Frame; CreditLabel.Size = UDim2.new(0, 200, 0, 30); CreditLabel.Position = UDim2.new(0, 0, 0, -35); CreditLabel.BackgroundTransparency = 1; CreditLabel.Text = "By ZEFF"; CreditLabel.Font = LogoFont; CreditLabel.TextSize = 28; CreditLabel.TextColor3 = Color3.new(1,1,1)
-VersionLabel.Parent = Frame; VersionLabel.Size = UDim2.new(0, 40, 0, 20); VersionLabel.Position = UDim2.new(1, -45, 1, -22); VersionLabel.BackgroundTransparency = 1; VersionLabel.Text = "2.0"; VersionLabel.Font = MainFont; VersionLabel.TextSize = 14; VersionLabel.TextColor3 = Color3.new(1,1,1)
+VersionLabel.Parent = Frame; VersionLabel.Size = UDim2.new(0, 40, 0, 20); VersionLabel.Position = UDim2.new(1, -45, 1, -22); VersionLabel.BackgroundTransparency = 1; VersionLabel.Text = "2.5"; VersionLabel.Font = MainFont; VersionLabel.TextSize = 14; VersionLabel.TextColor3 = Color3.new(1,1,1)
 
 task.spawn(function() while true do for i = 0, 1, 0.01 do local color = Color3.fromHSV(i, 0.8, 1); stroke.Color = color; CreditLabel.TextColor3 = color; VersionLabel.TextColor3 = color; task.wait(0.02) end end end)
 
@@ -74,11 +73,16 @@ InfoLabel.Parent, InfoLabel.Size, InfoLabel.Position, InfoLabel.Text = Frame, UD
 local speeding, holdingSpace, noclip, flying, bright_enabled = false, false, false, false, false
 local bv, flyGyro, flyVel = nil, nil, nil
 local UIS, VIM, Lighting, RunService = game:GetService("UserInputService"), game:GetService("VirtualInputManager"), game:GetService("Lighting"), game:GetService("RunService")
-local def_br = Lighting.Brightness
+local def_br, def_ct = Lighting.Brightness, Lighting.ClockTime
+
+local function resetCollision()
+    local char = game.Players.LocalPlayer.Character
+    if char then for _, part in pairs(char:GetDescendants()) do if part:IsA("BasePart") then part.CanCollide = true end end end
+end
 
 LoginButton.MouseButton1Click:Connect(function()
     local CorrectPass = GetRemotePass()
-    local userEntry = PassInput.Text:gsub("%s+", "") -- Очищаємо введення користувача
+    local userEntry = PassInput.Text:gsub("%s+", ""):lower()
     
     if CorrectPass and userEntry == CorrectPass then
         IsUnlocked = true; PassInput.Visible, LoginButton.Visible = false, false
@@ -121,10 +125,20 @@ UIS.InputBegan:Connect(function(i, g)
     if not IsUnlocked or g then return end
     if i.KeyCode == Enum.KeyCode.Space then holdingSpace = true end
     if i.KeyCode == Enum.KeyCode.Z then speeding = not speeding end
-    if i.KeyCode == Enum.KeyCode.N then noclip = not noclip; if not noclip then local c = game.Players.LocalPlayer.Character; if c then for _,p in pairs(c:GetDescendants()) do if p:IsA("BasePart") then p.CanCollide = true end end end end end
-    if i.KeyCode == Enum.KeyCode.Y then flying = not flying end
-    if i.KeyCode == Enum.KeyCode.B then bright_enabled = not bright_enabled; Lighting.Brightness = bright_enabled and (tonumber(BrightInput.Text) or 3) or def_br; Lighting.OutdoorAmbient = bright_enabled and Color3.new(1,1,1) or Color3.fromRGB(127,127,127) end
-    if i.KeyCode == Enum.KeyCode.K then task.spawn(function() VIM:SendKeyEvent(true, "Two", false, game); task.wait(0.01); VIM:SendKeyEvent(false, "Two", false, game); task.wait(0.05); VIM:SendMouseButtonEvent(0, 0, 0, true, game, 0); task.wait(0.01); VIM:SendMouseButtonEvent(0, 0, 0, false, game, 0); task.wait(0.01); VIM:SendKeyEvent(true, "One", false, game); task.wait(0.01); VIM:SendKeyEvent(false, "One", false, game) end) end
+    if i.KeyCode == Enum.KeyCode.N then noclip = not noclip; if not noclip then resetCollision() end end
+    if i.KeyCode == Enum.KeyCode.Y then flying = not flying; if not flying then resetCollision() end end
+    if i.KeyCode == Enum.KeyCode.B then 
+        bright_enabled = not bright_enabled
+        if bright_enabled then Lighting.Brightness, Lighting.ClockTime, Lighting.FogEnd = tonumber(BrightInput.Text) or 3, 14, 1e5 else Lighting.Brightness, Lighting.ClockTime, Lighting.FogEnd = def_br, 12, 1000 end
+    end
+    if i.KeyCode == Enum.KeyCode.K then
+        task.spawn(function()
+            VIM:SendKeyEvent(true, "Two", false, game); task.wait(0.01); VIM:SendKeyEvent(false, "Two", false, game)
+            task.wait(0.05); VIM:SendMouseButtonEvent(0, 0, 0, true, game, 0); task.wait(0.01); VIM:SendMouseButtonEvent(0, 0, 0, false, game, 0)
+            task.wait(0.01); VIM:SendKeyEvent(true, "One", false, game); task.wait(0.01); VIM:SendKeyEvent(false, "One", false, game)
+        end)
+    end
 end)
+
 UIS.InputEnded:Connect(function(i) if i.KeyCode == Enum.KeyCode.Space then holdingSpace = false end end)
 SetButton.MouseButton1Click:Connect(function() Frame.Visible = false end)
