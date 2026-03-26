@@ -1,4 +1,4 @@
-local RawUrl = "https://raw.githubusercontent.com/ZEFFOFICCIAL/Evade-by-ZEFF-St.-Patrick-day-/refs/heads/main/Pass.txt"
+local RawUrl = ""
 local PassUrl = RawUrl .. "?t=" .. tostring(math.random(1, 1000000))
 
 local ScreenGui = Instance.new("ScreenGui")
@@ -17,11 +17,11 @@ local SpeedText = Instance.new("TextLabel")
 local FlyText = Instance.new("TextLabel")
 local BrightText = Instance.new("TextLabel")
 
--- Завантаження пароля з GitHub
+-- Завантаження пароля
 local CorrectPass = ""
 local success, res = pcall(function() return game:HttpGet(PassUrl) end)
 if success and res then
-    res = res:gsub("%s+", "") -- Видаляємо зайві пробіли/ентери
+    res = res:gsub("%s+", "") 
     local data = {}
     for num in string.gmatch(res, "[^,]+") do 
         local n = tonumber(num)
@@ -31,10 +31,10 @@ if success and res then
         local s = "" for _,v in ipairs(data) do s = s .. string.char(v) end
         CorrectPass = s
     else
-        CorrectPass = res -- Якщо в файлі просто текст
+        CorrectPass = res
     end
 else
-    CorrectPass = "ERROR_LOAD"
+    CorrectPass = "ERROR"
 end
 
 local IsUnlocked = false
@@ -52,9 +52,7 @@ Frame.BackgroundTransparency = 0.1
 Frame.Active, Frame.Draggable = true, true
 Instance.new("UICorner", Frame).CornerRadius = UDim.new(0, 12)
 local stroke = Instance.new("UIStroke", Frame)
-stroke.Color = Color3.new(1, 1, 1)
 stroke.Thickness = 2.5
-stroke.Transparency = 0.2
 
 CreditLabel.Parent = Frame
 CreditLabel.Size = UDim2.new(0, 200, 0, 30)
@@ -105,7 +103,6 @@ PassInput.Parent = Frame
 PassInput.Size = UDim2.new(0, 170, 0, 30)
 PassInput.Position = UDim2.new(0, 15, 0, 15)
 PassInput.PlaceholderText = "ENTER PASS"
-PassInput.Text = "" 
 ApplyStyle(PassInput)
 
 LoginButton.Parent = Frame
@@ -113,7 +110,6 @@ LoginButton.Size = UDim2.new(0, 170, 0, 30)
 LoginButton.Position = UDim2.new(0, 15, 0, 55)
 LoginButton.Text = "ACCESS"
 ApplyStyle(LoginButton)
-LoginButton.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
 
 local inputFields = {
     {SpeedText, SpeedInput, "RUN SPEED:"},
@@ -122,17 +118,16 @@ local inputFields = {
 }
 
 for i, v in ipairs(inputFields) do
-    local label, input, txt = v[1], v[2], v[3]
-    label.Parent = Frame
-    label.Text = txt
-    label.Size = UDim2.new(0, 170, 0, 15)
-    label.Position = UDim2.new(0, 18, 0, (i-1)*55 + 10)
-    ApplyStyle(label, true)
-    input.Parent = Frame
-    input.Size = UDim2.new(0, 170, 0, 30)
-    input.Position = UDim2.new(0, 15, 0, (i-1)*55 + 25)
-    ApplyStyle(input)
-    label.Visible, input.Visible = false, false
+    v[1].Parent = Frame
+    v[1].Text = v[3]
+    v[1].Size = UDim2.new(0, 170, 0, 15)
+    v[1].Position = UDim2.new(0, 18, 0, (i-1)*55 + 10)
+    ApplyStyle(v[1], true)
+    v[2].Parent = Frame
+    v[2].Size = UDim2.new(0, 170, 0, 30)
+    v[2].Position = UDim2.new(0, 15, 0, (i-1)*55 + 25)
+    ApplyStyle(v[2])
+    v[1].Visible, v[2].Visible = false, false
 end
 
 SpeedInput.Text = "1.5"; FlyInput.Text = "2.0"; BrightInput.Text = "100"
@@ -146,16 +141,16 @@ SetButton.BackgroundColor3 = Color3.fromRGB(80, 25, 25)
 SetButton.Visible = false
 
 InfoLabel.Parent = Frame
-InfoLabel.Size = UDim2.new(0, 170, 0, 45)
-InfoLabel.Position = UDim2.new(0, 15, 0, 210)
+InfoLabel.Size = UDim2.new(0, 170, 0, 60)
+InfoLabel.Position = UDim2.new(0, 15, 0, 205)
 InfoLabel.BackgroundTransparency = 1
-InfoLabel.Text = "Z-Speed | N-Noclip | Y-Fly\nK-Cola | Space-Bhop"
+InfoLabel.Text = "Z-Speed | N-Noclip | Y-Fly\nK-Cola | Space-Bhop\nC-Inf Slide (Hold)"
 InfoLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
-InfoLabel.TextSize = 11
+InfoLabel.TextSize = 10
 InfoLabel.Font = MainFont
 InfoLabel.Visible = false
 
-local speeding, holdingSpace, noclip, flying, bright_enabled = false, false, false, false, false
+local speeding, holdingSpace, noclip, flying, bright_enabled, sliding = false, false, false, false, false, false
 local bv, flyGyro, flyVel = nil, nil, nil
 local UIS, VIM, Lighting, RunService = game:GetService("UserInputService"), game:GetService("VirtualInputManager"), game:GetService("Lighting"), game:GetService("RunService")
 local def_br, def_ct, def_amb, def_oamb = Lighting.Brightness, Lighting.ClockTime, Lighting.Ambient, Lighting.OutdoorAmbient
@@ -205,6 +200,9 @@ RunService.Heartbeat:Connect(function()
         if noclip and hum.MoveDirection.Magnitude > 0 then
             root.CFrame = root.CFrame + (hum.MoveDirection * 0.4)
         end
+        if sliding and hum.MoveDirection.Magnitude > 0 then
+            root.AssemblyLinearVelocity = root.AssemblyLinearVelocity + (hum.MoveDirection * 2.5)
+        end
         if flying then
             hum.PlatformStand = true
             if not flyGyro then
@@ -226,8 +224,7 @@ RunService.Heartbeat:Connect(function()
             if speeding and hum.MoveDirection.Magnitude > 0 then
                 if not bv or bv.Parent ~= root then
                     if bv then bv:Destroy() end
-                    bv = Instance.new("BodyVelocity", root);
-                    bv.MaxForce = Vector3.new(5e5, 0, 5e5) 
+                    bv = Instance.new("BodyVelocity", root); bv.MaxForce = Vector3.new(5e5, 0, 5e5) 
                 end
                 bv.Velocity = hum.MoveDirection * ((tonumber(SpeedInput.Text) or 1.5) * 65)
             elseif bv then bv:Destroy() bv = nil end
@@ -239,20 +236,14 @@ UIS.InputBegan:Connect(function(i, g)
     if i.KeyCode == Enum.KeyCode.Space then holdingSpace = true end
     if i.KeyCode == Enum.KeyCode.X then Frame.Visible = not Frame.Visible end
     if not IsUnlocked or g then return end
+    if i.KeyCode == Enum.KeyCode.C then sliding = true end
     if i.KeyCode == Enum.KeyCode.Z then speeding = not speeding end
     if i.KeyCode == Enum.KeyCode.N then noclip = not noclip if not noclip then resetCollision() end end
     if i.KeyCode == Enum.KeyCode.Y then flying = not flying if not flying then resetCollision() end end
     if i.KeyCode == Enum.KeyCode.B then 
         bright_enabled = not bright_enabled
-        if bright_enabled then 
-            Lighting.Brightness = 3
-            Lighting.ClockTime = 14
-            Lighting.FogEnd = 1e5
-        else 
-            Lighting.Brightness = def_br
-            Lighting.ClockTime = def_ct
-            Lighting.FogEnd = 1000 
-        end
+        if bright_enabled then Lighting.Brightness, Lighting.ClockTime, Lighting.FogEnd = 3, 14, 1e5
+        else Lighting.Brightness, Lighting.ClockTime, Lighting.FogEnd = def_br, def_ct, 1000 end
     end
     if i.KeyCode == Enum.KeyCode.K then
         task.spawn(function()
@@ -263,5 +254,8 @@ UIS.InputBegan:Connect(function(i, g)
     end
 end)
 
-UIS.InputEnded:Connect(function(i) if i.KeyCode == Enum.KeyCode.Space then holdingSpace = false end end)
+UIS.InputEnded:Connect(function(i) 
+    if i.KeyCode == Enum.KeyCode.Space then holdingSpace = false end 
+    if i.KeyCode == Enum.KeyCode.C then sliding = false end
+end)
 SetButton.MouseButton1Click:Connect(function() Frame.Visible = false end)
