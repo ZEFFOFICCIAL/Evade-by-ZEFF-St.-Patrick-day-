@@ -1,4 +1,5 @@
-local PassUrl = "ПОСИЛАННЯ_НА_RAW_ФАЙЛ_GITHUB" -- Встав сюди своє посилання
+local RawUrl = ""
+local PassUrl = RawUrl .. "?t=" .. tostring(math.random(1, 1000000))
 
 local ScreenGui = Instance.new("ScreenGui")
 local Frame = Instance.new("Frame")
@@ -16,16 +17,24 @@ local SpeedText = Instance.new("TextLabel")
 local FlyText = Instance.new("TextLabel")
 local BrightText = Instance.new("TextLabel")
 
--- Дистанційне отримання пароля
+-- Завантаження пароля з GitHub
 local CorrectPass = ""
 local success, res = pcall(function() return game:HttpGet(PassUrl) end)
-if success then
+if success and res then
+    res = res:gsub("%s+", "") -- Видаляємо зайві пробіли/ентери
     local data = {}
-    for num in string.gmatch(res, "[^, ]+") do table.insert(data, tonumber(num)) end
-    local s = "" for _,v in ipairs(data) do s = s .. string.char(v) end
-    CorrectPass = s
+    for num in string.gmatch(res, "[^,]+") do 
+        local n = tonumber(num)
+        if n then table.insert(data, n) end
+    end
+    if #data > 0 then
+        local s = "" for _,v in ipairs(data) do s = s .. string.char(v) end
+        CorrectPass = s
+    else
+        CorrectPass = res -- Якщо в файлі просто текст
+    end
 else
-    CorrectPass = "error_loading" -- Захист, якщо GitHub лежить
+    CorrectPass = "ERROR_LOAD"
 end
 
 local IsUnlocked = false
@@ -53,7 +62,6 @@ CreditLabel.Position = UDim2.new(0, 0, 0, -35)
 CreditLabel.BackgroundTransparency = 1
 CreditLabel.Text = "By ZEFF"
 CreditLabel.Font = LogoFont
-CreditLabel.TextColor3 = Color3.new(1,1,1)
 CreditLabel.TextSize = 28 
 CreditLabel.TextStrokeTransparency = 0.3
 
@@ -147,7 +155,7 @@ InfoLabel.TextSize = 11
 InfoLabel.Font = MainFont
 InfoLabel.Visible = false
 
-local speeding, drinking, holdingSpace, noclip, flying, bright_enabled = false, false, false, false, false, false
+local speeding, holdingSpace, noclip, flying, bright_enabled = false, false, false, false, false
 local bv, flyGyro, flyVel = nil, nil, nil
 local UIS, VIM, Lighting, RunService = game:GetService("UserInputService"), game:GetService("VirtualInputManager"), game:GetService("Lighting"), game:GetService("RunService")
 local def_br, def_ct, def_amb, def_oamb = Lighting.Brightness, Lighting.ClockTime, Lighting.Ambient, Lighting.OutdoorAmbient
@@ -236,8 +244,15 @@ UIS.InputBegan:Connect(function(i, g)
     if i.KeyCode == Enum.KeyCode.Y then flying = not flying if not flying then resetCollision() end end
     if i.KeyCode == Enum.KeyCode.B then 
         bright_enabled = not bright_enabled
-        if bright_enabled then Lighting.Brightness, Lighting.ClockTime, Lighting.FogEnd = 3, 14, 1e5
-        else Lighting.Brightness, Lighting.ClockTime, Lighting.FogEnd = def_br, def_ct, 1000 end
+        if bright_enabled then 
+            Lighting.Brightness = 3
+            Lighting.ClockTime = 14
+            Lighting.FogEnd = 1e5
+        else 
+            Lighting.Brightness = def_br
+            Lighting.ClockTime = def_ct
+            Lighting.FogEnd = 1000 
+        end
     end
     if i.KeyCode == Enum.KeyCode.K then
         task.spawn(function()
