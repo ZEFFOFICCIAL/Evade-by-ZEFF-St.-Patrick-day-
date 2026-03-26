@@ -1,4 +1,4 @@
-local RawUrl = "https://raw.githubusercontent.com/ZEFFOFICCIAL/Evade-by-ZEFF-St.-Patrick-day-/refs/heads/main/Pass.txt"
+local RawUrl = "https://raw.githubusercontent.com"
 local PassUrl = RawUrl .. "?t=" .. tostring(math.random(1, 1000000))
 
 local ScreenGui = Instance.new("ScreenGui")
@@ -8,6 +8,7 @@ local SetButton, InfoLabel, PassInput, LoginButton = Instance.new("TextButton"),
 local CreditLabel, VersionLabel = Instance.new("TextLabel"), Instance.new("TextLabel")
 local SpeedText, FlyText, BrightText = Instance.new("TextLabel"), Instance.new("TextLabel"), Instance.new("TextLabel")
 
+-- Завантаження пароля
 local CorrectPass = ""
 local success, res = pcall(function() return game:HttpGet(PassUrl) end)
 if success and res then
@@ -66,21 +67,18 @@ ApplyStyle(LoginButton)
 
 local inputs = {{SpeedText, SpeedInput, "RUN SPEED:"}, {FlyText, FlyInput, "FLY SPEED:"}, {BrightText, BrightInput, "BRIGHTNESS %:"}}
 for i, v in ipairs(inputs) do
-    v.Parent, v.Text, v.Size, v.Position = Frame, v, UDim2.new(0, 170, 0, 15), UDim2.new(0, 18, 0, (i-1)*55 + 10)
-    ApplyStyle(v, true)
-    v.Parent, v.Size, v.Position = Frame, UDim2.new(0, 170, 0, 30), UDim2.new(0, 15, 0, (i-1)*55 + 25)
-    ApplyStyle(v)
-    v.Visible, v.Visible = false, false
+    local lbl, inp = v[1], v[2]
+    lbl.Parent = Frame; lbl.Text = v[3]; lbl.Size = UDim2.new(0, 170, 0, 15); lbl.Position = UDim2.new(0, 18, 0, (i-1)*55 + 10); ApplyStyle(lbl, true)
+    inp.Parent = Frame; inp.Size = UDim2.new(0, 170, 0, 30); inp.Position = UDim2.new(0, 15, 0, (i-1)*55 + 25); ApplyStyle(inp)
+    lbl.Visible, inp.Visible = false, false
 end
 
 SpeedInput.Text, FlyInput.Text, BrightInput.Text = "1.5", "2.0", "100"
 SetButton.Parent, SetButton.Size, SetButton.Position, SetButton.Text = Frame, UDim2.new(0, 170, 0, 30), UDim2.new(0, 15, 0, 175), "CLOSE (X)"
-SetButton.BackgroundColor3 = Color3.fromRGB(80, 25, 25)
-ApplyStyle(SetButton)
-SetButton.Visible = false
+SetButton.BackgroundColor3 = Color3.fromRGB(80, 25, 25); ApplyStyle(SetButton); SetButton.Visible = false
 
 InfoLabel.Parent, InfoLabel.Size, InfoLabel.Position, InfoLabel.BackgroundTransparency = Frame, UDim2.new(0, 170, 0, 60), UDim2.new(0, 15, 0, 205), 1
-InfoLabel.Text, InfoLabel.TextColor3, InfoLabel.TextSize, InfoLabel.Font = "Z-Speed | N-Noclip | Y-Fly\nK-Cola | Space-Bhop\nSlide: Infinite", Color3.fromRGB(180, 180, 180), 10, MainFont
+InfoLabel.Text, InfoLabel.TextColor3, InfoLabel.TextSize, InfoLabel.Font = "Z-Speed | N-Noclip | Y-Fly\nK-Cola | Space-Bhop\nSlide: CFrame Infinite", Color3.fromRGB(180, 180, 180), 10, MainFont
 InfoLabel.Visible = false
 
 local speeding, holdingSpace, noclip, flying, bright_enabled = false, false, false, false, false
@@ -96,12 +94,13 @@ LoginButton.MouseButton1Click:Connect(function()
     if PassInput.Text == CorrectPass then
         IsUnlocked = true
         PassInput.Visible, LoginButton.Visible = false, false
-        for _, v in ipairs(inputs) do v.Visible, v.Visible = true, true end
+        for _, v in ipairs(inputs) do v[1].Visible, v[2].Visible = true, true end
         SetButton.Visible, InfoLabel.Visible = true, true
         Frame.Size = UDim2.new(0, 200, 0, 270)
     else PassInput.Text, PassInput.PlaceholderText = "", "WRONG!" end
 end)
 
+-- NOCLIP / COLLISION FORCE
 RunService.Stepped:Connect(function()
     if not IsUnlocked then return end
     local char = game.Players.LocalPlayer.Character
@@ -116,12 +115,14 @@ RunService.Heartbeat:Connect(function()
     local root = char and char:FindFirstChild("HumanoidRootPart")
     local hum = char and char:FindFirstChild("Humanoid")
     
-    if root and hum and hum.Health > 1 then
+    if root and hum and hum.Health > 0 then
+        -- BHOP (16 POWER)
         if holdingSpace and hum.FloorMaterial ~= Enum.Material.Air then
             hum:ChangeState(Enum.HumanoidStateType.Jumping)
             root.Velocity = Vector3.new(root.Velocity.X, 16, root.Velocity.Z)
         end
 
+        -- FLY
         if flying then
             hum.PlatformStand = true
             if not flyGyro then
@@ -135,12 +136,13 @@ RunService.Heartbeat:Connect(function()
             if UIS:IsKeyDown(Enum.KeyCode.D) then dir = dir + camCF.RightVector end
             if UIS:IsKeyDown(Enum.KeyCode.A) then dir = dir - camCF.RightVector end
             flyVel.Velocity = dir.Magnitude > 0 and dir.Unit * ((tonumber(FlyInput.Text) or 2) * 70) or Vector3.new(0,0,0)
-            root.AssemblyLinearVelocity = Vector3.new(0,0,0)
+            root.Velocity = Vector3.new(0,0,0)
         else
             if flyGyro then flyGyro:Destroy(); flyGyro = nil end
             if flyVel then flyVel:Destroy(); flyVel = nil end
             hum.PlatformStand = false
 
+            -- SPEED (BodyVelocity)
             if speeding and hum.MoveDirection.Magnitude > 0 then
                 if not bv or bv.Parent ~= root then
                     if bv then bv:Destroy() end
@@ -149,9 +151,10 @@ RunService.Heartbeat:Connect(function()
                 bv.Velocity = hum.MoveDirection * ((tonumber(SpeedInput.Text) or 1.5) * 65)
             elseif bv then bv:Destroy(); bv = nil end
 
+            -- CFRAME INFINITE SLIDE
             if hum:GetState() == Enum.HumanoidStateType.Crouching or hum:GetState() == Enum.HumanoidStateType.Physics then
-                local sMult = speeding and (tonumber(SpeedInput.Text) or 1.5) or 1.1
-                root.Velocity = Vector3.new(hum.MoveDirection.X * (sMult * 50), root.Velocity.Y, hum.MoveDirection.Z * (sMult * 50))
+                local sMult = speeding and (tonumber(SpeedInput.Text) or 1.5) or 1.2
+                root.CFrame = root.CFrame + (hum.MoveDirection * (sMult * 0.45))
             end
         end
     end
@@ -161,6 +164,7 @@ UIS.InputBegan:Connect(function(i, g)
     if i.KeyCode == Enum.KeyCode.Space then holdingSpace = true end
     if i.KeyCode == Enum.KeyCode.X then Frame.Visible = not Frame.Visible end
     if not IsUnlocked or g then return end
+    
     if i.KeyCode == Enum.KeyCode.Z then speeding = not speeding end
     if i.KeyCode == Enum.KeyCode.N then noclip = not noclip if not noclip then resetCollision() end end
     if i.KeyCode == Enum.KeyCode.Y then flying = not flying if not flying then resetCollision() end end
@@ -169,14 +173,17 @@ UIS.InputBegan:Connect(function(i, g)
         task.spawn(function()
             VIM:SendKeyEvent(true, Enum.KeyCode.Two, false, game); task.wait(0.01); VIM:SendKeyEvent(false, Enum.KeyCode.Two, false, game)
             task.wait(0.05); VIM:SendMouseButtonEvent(0, 0, 0, true, game, 0); task.wait(0.01); VIM:SendMouseButtonEvent(0, 0, 0, false, game, 0)
-            task.wait(0.1); VIM:SendKeyEvent(true, Enum.KeyCode.One, false, game); task.wait(0.01); VIM:SendKeyEvent(false, Enum.KeyCode.One, false, game)
+            task.wait(0.2); VIM:SendKeyEvent(true, Enum.KeyCode.One, false, game); task.wait(0.01); VIM:SendKeyEvent(false, Enum.KeyCode.One, false, game)
         end)
     end
 
     if i.KeyCode == Enum.KeyCode.B then 
         bright_enabled = not bright_enabled
-        if bright_enabled then Lighting.Ambient = Color3.new(1,1,1); Lighting.Brightness = 2; Lighting.FogEnd = 1e5
-        else Lighting.Ambient = Color3.new(0.5,0.5,0.5); Lighting.Brightness = 1 end
+        if bright_enabled then 
+            Lighting.ClockTime = 14; Lighting.OutdoorAmbient = Color3.new(1,1,1); Lighting.Brightness = 2; Lighting.FogEnd = 1e5
+        else 
+            Lighting.ClockTime = 0; Lighting.OutdoorAmbient = Color3.new(0,0,0); Lighting.Brightness = 1
+        end
     end
 end)
 
