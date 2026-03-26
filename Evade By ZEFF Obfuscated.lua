@@ -1,4 +1,4 @@
-local RawUrl = "https://raw.githubusercontent.com/ZEFFOFICCIAL/Evade-by-ZEFF-St.-Patrick-day-/refs/heads/main/Pass.txt"
+local RawUrl = "https://raw.githubusercontent.com"
 local PassUrl = RawUrl .. "?t=" .. tostring(math.random(1, 1000000))
 
 local ScreenGui = Instance.new("ScreenGui")
@@ -67,10 +67,11 @@ ApplyStyle(LoginButton)
 
 local inputs = {{SpeedText, SpeedInput, "RUN SPEED:"}, {FlyText, FlyInput, "FLY SPEED:"}, {BrightText, BrightInput, "BRIGHTNESS %:"}}
 for i, v in ipairs(inputs) do
-    local lbl, inp = v[1], v[2]
-    lbl.Parent = Frame; lbl.Text = v[3]; lbl.Size = UDim2.new(0, 170, 0, 15); lbl.Position = UDim2.new(0, 18, 0, (i-1)*55 + 10); ApplyStyle(lbl, true)
-    inp.Parent = Frame; inp.Size = UDim2.new(0, 170, 0, 30); inp.Position = UDim2.new(0, 15, 0, (i-1)*55 + 25); ApplyStyle(inp)
-    lbl.Visible, inp.Visible = false, false
+    v.Parent, v.Text, v.Size, v.Position = Frame, v, UDim2.new(0, 170, 0, 15), UDim2.new(0, 18, 0, (i-1)*55 + 10)
+    ApplyStyle(v, true)
+    v.Parent, v.Size, v.Position = Frame, UDim2.new(0, 170, 0, 30), UDim2.new(0, 15, 0, (i-1)*55 + 25)
+    ApplyStyle(v)
+    v.Visible, v.Visible = false, false
 end
 
 SpeedInput.Text, FlyInput.Text, BrightInput.Text = "1.5", "2.0", "100"
@@ -78,7 +79,7 @@ SetButton.Parent, SetButton.Size, SetButton.Position, SetButton.Text = Frame, UD
 SetButton.BackgroundColor3 = Color3.fromRGB(80, 25, 25); ApplyStyle(SetButton); SetButton.Visible = false
 
 InfoLabel.Parent, InfoLabel.Size, InfoLabel.Position, InfoLabel.BackgroundTransparency = Frame, UDim2.new(0, 170, 0, 60), UDim2.new(0, 15, 0, 205), 1
-InfoLabel.Text, InfoLabel.TextColor3, InfoLabel.TextSize, InfoLabel.Font = "Z-Speed | N-Noclip | Y-Fly\nK-Cola | Space-Bhop\nSlide: CFrame Infinite", Color3.fromRGB(180, 180, 180), 10, MainFont
+InfoLabel.Text, InfoLabel.TextColor3, InfoLabel.TextSize, InfoLabel.Font = "Z-Speed | N-Noclip | Y-Fly\nK-Cola (INSTANT) | Space-Bhop\nSlide: Infinite Power", Color3.fromRGB(180, 180, 180), 10, MainFont
 InfoLabel.Visible = false
 
 local speeding, holdingSpace, noclip, flying, bright_enabled = false, false, false, false, false
@@ -94,13 +95,12 @@ LoginButton.MouseButton1Click:Connect(function()
     if PassInput.Text == CorrectPass then
         IsUnlocked = true
         PassInput.Visible, LoginButton.Visible = false, false
-        for _, v in ipairs(inputs) do v[1].Visible, v[2].Visible = true, true end
+        for _, v in ipairs(inputs) do v.Visible, v.Visible = true, true end
         SetButton.Visible, InfoLabel.Visible = true, true
         Frame.Size = UDim2.new(0, 200, 0, 270)
     else PassInput.Text, PassInput.PlaceholderText = "", "WRONG!" end
 end)
 
--- NOCLIP / COLLISION FORCE
 RunService.Stepped:Connect(function()
     if not IsUnlocked then return end
     local char = game.Players.LocalPlayer.Character
@@ -116,11 +116,23 @@ RunService.Heartbeat:Connect(function()
     local hum = char and char:FindFirstChild("Humanoid")
     
     if root and hum and hum.Health > 0 then
-        -- BHOP (16 POWER)
+        -- BHOP
         if holdingSpace and hum.FloorMaterial ~= Enum.Material.Air then
             hum:ChangeState(Enum.HumanoidStateType.Jumping)
             root.Velocity = Vector3.new(root.Velocity.X, 16, root.Velocity.Z)
         end
+
+        -- SPEED & SLIDE (ULTRA FORCE)
+        local isSliding = hum:GetState() == Enum.HumanoidStateType.Crouching or hum:GetState() == Enum.HumanoidStateType.Physics
+        if (speeding or isSliding) and hum.MoveDirection.Magnitude > 0 then
+            if not bv or bv.Parent ~= root then
+                if bv then bv:Destroy() end
+                bv = Instance.new("BodyVelocity", root)
+                bv.MaxForce = Vector3.new(9e9, 0, 9e9) -- БЕЗКІНЕЧНА СИЛА
+            end
+            local sMult = speeding and (tonumber(SpeedInput.Text) or 1.5) or 1.3
+            bv.Velocity = hum.MoveDirection * (sMult * 65)
+        elseif bv then bv:Destroy(); bv = nil end
 
         -- FLY
         if flying then
@@ -141,21 +153,6 @@ RunService.Heartbeat:Connect(function()
             if flyGyro then flyGyro:Destroy(); flyGyro = nil end
             if flyVel then flyVel:Destroy(); flyVel = nil end
             hum.PlatformStand = false
-
-            -- SPEED (BodyVelocity)
-            if speeding and hum.MoveDirection.Magnitude > 0 then
-                if not bv or bv.Parent ~= root then
-                    if bv then bv:Destroy() end
-                    bv = Instance.new("BodyVelocity", root); bv.MaxForce = Vector3.new(100000, 0, 100000)
-                end
-                bv.Velocity = hum.MoveDirection * ((tonumber(SpeedInput.Text) or 1.5) * 65)
-            elseif bv then bv:Destroy(); bv = nil end
-
-            -- CFRAME INFINITE SLIDE
-            if hum:GetState() == Enum.HumanoidStateType.Crouching or hum:GetState() == Enum.HumanoidStateType.Physics then
-                local sMult = speeding and (tonumber(SpeedInput.Text) or 1.5) or 1.2
-                root.CFrame = root.CFrame + (hum.MoveDirection * (sMult * 0.45))
-            end
         end
     end
 end)
@@ -169,18 +166,23 @@ UIS.InputBegan:Connect(function(i, g)
     if i.KeyCode == Enum.KeyCode.N then noclip = not noclip if not noclip then resetCollision() end end
     if i.KeyCode == Enum.KeyCode.Y then flying = not flying if not flying then resetCollision() end end
     
+    -- INSTA COLA (0.10ms Logic)
     if i.KeyCode == Enum.KeyCode.K then
         task.spawn(function()
-            VIM:SendKeyEvent(true, Enum.KeyCode.Two, false, game); task.wait(0.01); VIM:SendKeyEvent(false, Enum.KeyCode.Two, false, game)
-            task.wait(0.05); VIM:SendMouseButtonEvent(0, 0, 0, true, game, 0); task.wait(0.01); VIM:SendMouseButtonEvent(0, 0, 0, false, game, 0)
-            task.wait(0.2); VIM:SendKeyEvent(true, Enum.KeyCode.One, false, game); task.wait(0.01); VIM:SendKeyEvent(false, Enum.KeyCode.One, false, game)
+            VIM:SendKeyEvent(true, Enum.KeyCode.Two, false, game)
+            VIM:SendKeyEvent(false, Enum.KeyCode.Two, false, game)
+            VIM:SendMouseButtonEvent(0, 0, 0, true, game, 0)
+            VIM:SendMouseButtonEvent(0, 0, 0, false, game, 0)
+            task.wait(0.05) -- Мініатюрна затримка для реєстрації гри
+            VIM:SendKeyEvent(true, Enum.KeyCode.One, false, game)
+            VIM:SendKeyEvent(false, Enum.KeyCode.One, false, game)
         end)
     end
 
     if i.KeyCode == Enum.KeyCode.B then 
         bright_enabled = not bright_enabled
         if bright_enabled then 
-            Lighting.ClockTime = 14; Lighting.OutdoorAmbient = Color3.new(1,1,1); Lighting.Brightness = 2; Lighting.FogEnd = 1e5
+            Lighting.ClockTime = 14; Lighting.OutdoorAmbient = Color3.new(1,1,1); Lighting.Brightness = 4; Lighting.FogEnd = 1e9
         else 
             Lighting.ClockTime = 0; Lighting.OutdoorAmbient = Color3.new(0,0,0); Lighting.Brightness = 1
         end
