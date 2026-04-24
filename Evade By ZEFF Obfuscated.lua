@@ -1,4 +1,4 @@
-local v0 = "https://raw.githubusercontent.com/ZEFFOFICCIAL/Evade-by-ZEFF-St.-Patrick-day-/refs/heads/main/Pass.txt";
+local v0 = "https://raw.githubusercontent.com/ZEFFOFICCIAL/Evade-by-ZEFF/refs/heads/main/Pass.txt";
 local v1 = v0 .. "?t=" .. tostring(math.random(1, 1000000));
 local v2 = Instance.new("ScreenGui");
 local v2 = Instance.new("ScreenGui");
