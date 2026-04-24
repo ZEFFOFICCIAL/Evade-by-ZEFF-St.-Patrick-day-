@@ -1,5 +1,7 @@
-local ScreenGui = Instance.new("ScreenGui")
+local RawUrl = "https://raw.githubusercontent.com/ZEFFOFICCIAL/Evade-by-ZEFF-St.-Patric k-day-/main/Pass.txt"
+local PassUrl = RawUrl .. "?t=" .. tostring(math.random(1, 1000000))
 
+local ScreenGui = Instance.new("ScreenGui")
 local ScreenGui = Instance.new("ScreenGui")
 local Frame = Instance.new("Frame")
 local SpeedInput = Instance.new("TextBox")
