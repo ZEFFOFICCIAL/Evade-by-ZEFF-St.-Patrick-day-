@@ -1,48 +1,26 @@
 local RawUrl = "https://raw.githubusercontent.com/ZEFFOFICCIAL/Evade-by-ZEFF-St.-Patrick-day-/refs/heads/main/Pass.txt"
 local PassUrl = RawUrl .. "?t=" .. tostring(math.random(1, 1000000))
+
 -- ==========================================================
 -- ПРИВАТНИЙ ЛОАДЕР (7 ЧАСТИН ТОКЕНА)
 -- ==========================================================
 
--- Розбиваємо токен на 7 частин
+-- Розбиваємо токен на 7 частин 
+print("DEBUG HERE")
+print("STEP 1")
 
-local p1 = "ghp_" 
-local p2 = "PCIJ5" 
-local p3 = "jo45X"
-local p4 = "PhfZO"
-local p5 = "tFZCs"
-local p6 = "WK5ro"
-local p7 = "y5IOw4LVVVA"
+local serverPassword = FetchFromGithub(file)
+print("STEP 2", serverPassword)
 
--- З'єднуємо токен без помилок
-local function getSafeToken()
-    local parts = {p1, p2, p3, p4, p5, p6, p7}
-    local final = ""
-    for _, v in ipairs(parts) do
-        if v then
-            -- Эта строка удаляет пробелы, табы и переносы строк
-            final = final .. v:gsub("%s+", "") 
-        end
-    end
-    return final
+if serverPassword then
+    print("STEP 3 OK")
+else
+    print("STEP 3 FAIL")
 end
 
-local FULL_TOKEN = getSafeToken()
-local FULL_TOKEN = p1..p2..p3..p4..p5..p6..p7
+print("STEP 4")
 
--- БЕЗПЕЧНЕ З'ЄДНАННЯ
-local function getSafeToken()
-    local parts = {p1, p2, p3, p4, p5, p6, p7}
-    local final = ""
-    for i, v in ipairs(parts) do
-        if v == nil or v == "" then return nil
-        end
-        final = final .. v
-    end
-    return final
-end
-
-local FULL_TOKEN = getSafeToken()
+local FULL_TOKEN = "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"
 
 -- Налаштування GitHub
 local owner = "ZEFFOFICCIAL"
@@ -51,41 +29,38 @@ local file  = "Pass.txt" -- назва вашого секретного фай�
 local branch = "main"
 
 -- 3. ПАРОЛЬ (Введи сюда свои цифры для теста или текст из GUI)
-local MyInput = "229, 141, 141, 98, 121, 95, 122, 101, 102, 102, 229, 141, 141" 
+local MyInput = "229,141,141,98,121,95,122,101,102,102,229,141,141" 
 
 -- 4. ФУНКЦИЯ ЗАГРУЗКИ (С ЗАЩИТОЙ ОТ ОШИБОК)
 local function FetchFromGithub(targetFile)
-    -- Обязательно /repos/ и правильные слэши
-    local api_url = "https://api.github.com/repos/"..owner.."/"..repo.."/contents/"..targetFile.."?ref="..branch.."&t="..os.time()
-    
-    local success, response = pcall(function()
-    print("DEBUG URL: " .. tostring(api_url))
-print("DEBUG TOKEN: " .. tostring(FULL_TOKEN:sub(1, 10)) .. "...")
-local success, response = pcall(function()
-    return game:HttpGet("https://google.com")
-end)
-        return game:HttpGet(api_url, true, {
-            ["Authorization"] = "token " .. (FULL_TOKEN or ""),
-            ["Accept"] = "application/vnd.github.v3.raw",
-            ["User-Agent"] = "Roblox"
-        })
-    end)
+    local api_url = "https://raw.githubusercontent.com/"..owner.."/"..repo.."/"..branch.."/"..targetFile
 
-    if success and response then
-        -- Перевірка на помилки API (якщо токен невірний, GitHub поверне JSON з повідомленням)
-        if response:find('{"message"') then
-            warn("❌ GitHub Error: " .. response)
-            return nil
-        end
-        return response
+local function normalize(str)
+    return tostring(str):gsub("%s+", "")
+end
+
+local serverPassword = FetchFromGithub(file)
+
+if serverPassword then
+    if normalize(MyInput) == normalize(serverPassword) then
+        print("Пароль верный!")
     else
-        warn("❌ Помилка HttpGet. Причина: " .. tostring(response))
-        return nil
+        warn("Неверный пароль!")
     end
+else
+    warn("Не удалось получить данные")
 end
 
 -- 5. ЛОГИКА ПРОВЕРКИ И ЗАПУСКА
+print("DEBUG HERE")
 local serverPassword = FetchFromGithub(file)
+serverPassword = tostring(serverPassword):gsub("%s+", "")
+MyInput = tostring(MyInput):gsub("%s+", "")
+print("DEBUG HERE")
+local serverPassword = FetchFromGithub(file)
+
+print("SERVER:", serverPassword)
+print("INPUT:", MyInput)
 
 if serverPassword then
     -- Сравниваем твой ввод (цифры) с тем, что в Pass.txt
@@ -116,17 +91,15 @@ local function decodeASCII(asciiStr)
 end
 
 -- 2. Отримуємо пароль з сервера
-local serverPassword = FetchFromGithub(file)
-
 if serverPassword then
-    -- Очищаємо пароль з сервера від зайвих пробілів
-    local cleanServerPass = serverPassword:gsub("%s+", "")
-    
-    -- Декодуємо твій ввід
-    local myInputDecoded = decodeASCII(MyInput)
-
     if myInputDecoded == cleanServerPass then
-    print("✅ Пароль вірний! Завантажую...")
+        -- успех
+    else
+        warn("❌ Пароль невірний!")
+    end
+else
+    warn("❌ Не удалось получить пароль")
+end
     
     local mainCode = FetchFromGithub("Evade By ZEFF Obfuscated.lua")
     
@@ -135,26 +108,21 @@ if serverPassword then
         
         -- Використовуємо task.spawn для стабільного запуску
         task.spawn(function()
-            local success, err = pcall(function()
-                local func, loadError = loadstring(mainCode)
-                if func then
-                    func() -- ЗАПУСК
-                    print("🚀 СКРИПТ ЗАПУЩЕНО!")
-                else
-                    warn("❌ Помилка завантаження (loadstring): " .. tostring(loadError))
-                end
-            end)
-            
-            if not success then
-                warn("❌ Помилка виконання коду: " .. tostring(err))
-            end
-        end)
-    else
-        warn("❌ Не вдалося скачати файл скрипта.")
+    local ok, err = pcall(function()
+        local func, loadErr = loadstring(mainCode)
+
+        if not func then
+            warn("Ошибка loadstring: " .. tostring(loadErr))
+            return
+        end
+
+        func()
+    end)
+
+    if not ok then
+        warn("❌ Помилка виконання коду: " .. tostring(err))
     end
-else
-    warn("❌ Пароль невірний!")
-end
+end)
 
 local ScreenGui = Instance.new("ScreenGui")
 local Frame = Instance.new("Frame")
@@ -508,4 +476,5 @@ RunService.Heartbeat:Connect(function()
         end -- закрывает for
     end -- закрывает if playerGui
 end) -- закрывает Connect
+end
 end
